@@ -16,34 +16,32 @@ def receive_data(client_socket):
     print("Datos del correo:")
     print(f"Destinatario: {destinatario}")
     print(f"Asunto: {asunto}")
-    print(f"Mensaje: {mensaje} \n")
+    print(f"Mensaje: {mensaje}\n")
+
+    # Recibir cantidad de archivos
+    files_count = int.from_bytes(client_socket.recv(4), byteorder='big')
+    print(f"Cantidad de archivos: {files_count}")
 
     # Recibir archivos
-    num_archivos = client_socket.recv(4) #***
-    num_archivos = int.from_bytes(num_archivos, 'big') #***
+    for i in range(files_count):
+        # Recibir nombre del archivo
+        file_name_length = int.from_bytes(client_socket.recv(4), byteorder='big')
+        file_name = client_socket.recv(file_name_length).decode()
+        print(f"Nombre del archivo {i + 1}: {file_name}")
 
-    print(f"Número de archivos recibidos: {num_archivos}\n")
+        # Recibir contenido del archivo
+        with open(file_name, 'w') as file:
+            while True:
+                data = client_socket.recv(buffer_size)
+                if not data:
+                    break
+                file.write(data)
 
-    try:
-        for i in range(num_archivos):
-            # Recibir el nombre del archivo
-            nombre_archivo = client_socket.recv(buffer_size).decode()
+        print(f"Archivo {file_name} recibido y guardado.")
 
-            # Crear un nuevo archivo en el servidor
-            with open(f"{nombre_archivo}.xml", 'wb') as file:
-                # Recibir el contenido del archivo en bloques
-                while True:
-                    data = client_socket.recv(buffer_size)
-                    if not data:
-                        break
-                    file.write(data)
-
-            print("Archivo recibido:", nombre_archivo)
-    except:
-        print(f'Ha ocurrido un error.')
-    
     # Cerrar la conexión con el cliente
     client_socket.close()
+
 
 
 def start_server():
@@ -60,7 +58,7 @@ def start_server():
     while True:
         # Esperar una nueva conexión
         client_socket, address = server_socket.accept()
-        print(f"Conexión establecida desde: {address}")
+        print(f"- Conexión establecida desde: {address}\n")
 
         # Manejar la conexión en un hilo separado
         receive_data(client_socket)
