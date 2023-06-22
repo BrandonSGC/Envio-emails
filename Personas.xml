@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<contacts>
+	<personne id="1">
+		<firstname>Franco de la Trinidad</firstname>
+		<lastname>Salas</lastname>
+		<phone>76678900</phone>
+		<email>fran@gmail.com</email>
+	</personne>
+	<personne id="2">
+		<firstname>Carlos</firstname>
+		<lastname>Lopez</lastname>
+		<phone>88663402</phone>
+		<email>carlos.lopez@gmail.com</email>
+	</personne>
+	<personne id="3">
+		<firstname>Kattia</firstname>
+		<lastname>Ramirez</lastname>
+		<phone>77442563</phone>
+		<email>Katty.ramirez@gmail.com</email>
+	</personne>
+</contacts>
