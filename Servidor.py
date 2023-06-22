@@ -17,27 +17,9 @@ def receive_data(client_socket):
     print(f"Destinatario: {destinatario}")
     print(f"Asunto: {asunto}")
     print(f"Mensaje: {mensaje}\n")
-
-    # Recibir cantidad de archivos
-    files_count = int.from_bytes(client_socket.recv(4), byteorder='big')
-    print(f"Cantidad de archivos: {files_count}")
-
+    
     # Recibir archivos
-    for i in range(files_count):
-        # Recibir nombre del archivo
-        file_name_length = int.from_bytes(client_socket.recv(4), byteorder='big')
-        file_name = client_socket.recv(file_name_length).decode()
-        print(f"Nombre del archivo {i + 1}: {file_name}")
-
-        # Recibir contenido del archivo
-        with open(file_name, 'w') as file:
-            while True:
-                data = client_socket.recv(buffer_size)
-                if not data:
-                    break
-                file.write(data)
-
-        print(f"Archivo {file_name} recibido y guardado.")
+    
 
     # Cerrar la conexión con el cliente
     client_socket.close()
