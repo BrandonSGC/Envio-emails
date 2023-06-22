@@ -2,9 +2,11 @@ import socket
 import struct
 import re
 import io
+import os
 import xml.etree.ElementTree as ET
 
 def main():
+    os.system('cls')
     host = 'localhost'
     puerto = 12345
 
@@ -20,37 +22,10 @@ def main():
             conexion, direccion = servidor.accept()
             print('Cliente conectado:', direccion)
 
-            # Recibe el nombre del archivo.
-            nombre_archivo = conexion.recv(1024).decode()
-            if not nombre_archivo:
-                break
-
-            # Recibe la longitud del archivo en 4 bytes.
-            longitud_archivo = conexion.recv(4)
-            longitud_archivo = struct.unpack('!I', longitud_archivo)[0]
-
-            # Recibe el contenido del archivo en fragmentos
-            contenido_archivo = b""
-            bytes_recibidos = 0
-            while bytes_recibidos < longitud_archivo:
-                fragmento = conexion.recv(min(1024, longitud_archivo - bytes_recibidos))
-                if not fragmento:
-                    break
-                contenido_archivo += fragmento
-                bytes_recibidos += len(fragmento)
-
-            if bytes_recibidos < longitud_archivo:
-                print(f"Error al recibir el archivo: {nombre_archivo}")
-                break
-
-            # Imprime el nombre y contenido del archivo XML
-            print(f"Archivo recibido: {nombre_archivo}")
-            print("Contenido:")
-            print(contenido_archivo.decode())
-
-            # Genera el archivo XML en el servidor
-            generar_archivo_xml(nombre_archivo, contenido_archivo)
-                
+            # Recibe archivos hasta que se envíe "FIN_ARCHIVO"
+            while True:
+                obtenerArchivosXML(conexion, direccion)
+                # Aqui deberiamos de recibir los demas archivos...
 
             conexion.close()
             print('Cliente desconectado:', direccion)
@@ -60,6 +35,43 @@ def main():
 
     finally:
         servidor.close()
+
+def obtenerArchivosXML(conexion, direccion):
+    # Recibe el nombre del archivo.
+    nombre_archivo = conexion.recv(1024).decode()
+    if not nombre_archivo:
+        return
+
+    # Comprueba si se ha alcanzado la condición de salida
+    if nombre_archivo == "FIN_ARCHIVO":
+        return
+
+    # Recibe la longitud del archivo en 4 bytes.
+    longitud_archivo = conexion.recv(4)
+    longitud_archivo = struct.unpack('!I', longitud_archivo)[0]
+
+    # Recibe el contenido del archivo en fragmentos
+    contenido_archivo = b""
+    bytes_recibidos = 0
+    while bytes_recibidos < longitud_archivo:
+        fragmento = conexion.recv(min(1024, longitud_archivo - bytes_recibidos))
+        if not fragmento:
+            break
+        contenido_archivo += fragmento
+        bytes_recibidos += len(fragmento)
+
+    if bytes_recibidos < longitud_archivo:
+        print(f"Error al recibir el archivo: {nombre_archivo}")
+        return
+
+    # Imprime el nombre y contenido del archivo XML
+    print(f"Archivo recibido: {nombre_archivo}")
+    print("Contenido:")
+    print(contenido_archivo.decode())
+
+    # Genera el archivo XML en el servidor
+    generar_archivo_xml(nombre_archivo, contenido_archivo)
+
 
 def generar_archivo_xml(nombre_archivo, contenido_xml):
     # Crea el árbol XML a partir del contenido recibido
