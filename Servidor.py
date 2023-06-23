@@ -58,7 +58,7 @@ def generarXML(estadisticas_archivo):
     xml_file = open("Estadisticas.xml", "w")
     xml_file.write(doc.toprettyxml(indent="\t"))
     xml_file.close()
-    print('El archivo se ha creado con éxito!')
+    print('Se ha generado un archivo con las estadisticas!')
 
 
 # Funcion que envia los correos a cada persona en el archivo.
