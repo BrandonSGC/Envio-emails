@@ -25,6 +25,7 @@ def recibirDatos(client_socket):
     client_socket.close()
     return asunto, mensaje, archivo1, archivo2, archivo3
 
+# Funcion para generar las estadisticas de los archivos.
 def generarXML(estadisticas_archivo):
     # Crear el documento XML
     doc = minidom.Document()
@@ -60,8 +61,6 @@ def generarXML(estadisticas_archivo):
     print('El archivo se ha creado con éxito!')
 
 
-
-
 # Funcion que envia los correos a cada persona en el archivo.
 def enviarCorreos(archivo, remitente, asunto, mensaje):      
     # Variables para almacenar las estadísticas del archivo actual
@@ -94,16 +93,16 @@ def enviarCorreos(archivo, remitente, asunto, mensaje):
                 email["From"] = remitente
                 email["To"] = destinatario
                 email["Subject"] = asunto
-
                 email.set_content(mensaje)
 
                 smtp = smtplib.SMTP_SSL("smtp.gmail.com")
+                
                 # Adjunatmos el correo del remitente y la clave.
                 smtp.login(remitente, "fiqosavbtvqwdcay")
                 smtp.sendmail(remitente, destinatario, email.as_string())
-                # Incrementar el contador de envíos exitosos
-                estadisticas_archivo['totalenvios'] += 1
                 
+                # Incrementar el contador de envíos exitosos
+                estadisticas_archivo['totalenvios'] += 1                
                 smtp.quit()
                 print(f"El correo electronico a {destinatario} de {firstname} {lastname} ha sido enviado con éxito!")
                 print("-"*70)
@@ -114,12 +113,12 @@ def enviarCorreos(archivo, remitente, asunto, mensaje):
                 print("-" * 70)
                         
         # Agregar las estadísticas del archivo actual a la lista de estadísticas
-        estadisticas.append(estadisticas_archivo)
-        
+        estadisticas.append(estadisticas_archivo)        
     else:
         print(f'No se ha encontrado el archivo: {archivo}')
 
 
+# Funcion para inicializar el servidor.
 def start_server():    
     # Crear un socket TCP/IP
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -150,28 +149,40 @@ def start_server():
 
         input('\nEnter para continuar...\n')
 
-        # Creamos los hilos para mandar los correos.
-        hilo1 = threading.Thread(target=enviarCorreos, args=(archivo1, remitente, asunto, mensaje))
-        hilo2 = threading.Thread(target=enviarCorreos, args=(archivo2, remitente, asunto, mensaje))
-        hilo3 = threading.Thread(target=enviarCorreos, args=(archivo3, remitente, asunto, mensaje))
+        # Validar de ejecutar el programa solamente si se mandaron minimo 2 o max 3 archivos.
+        if archivo3 == "":
+            # Creamos los hilos para mandar los correos concurrentemente.
+            hilo1 = threading.Thread(target=enviarCorreos, args=(archivo1, remitente, asunto, mensaje))
+            hilo2 = threading.Thread(target=enviarCorreos, args=(archivo2, remitente, asunto, mensaje))
 
-        # Inicializamos los hilos.
-        hilo1.start()
-        hilo2.start()
-        hilo3.start()
+            # Inicializamos los hilos.
+            hilo1.start()
+            hilo2.start()
 
-        # Esperar a que los hilos terminen antes de continuar
-        hilo1.join()
-        hilo2.join()
-        hilo3.join()
+            # Esperamos a que los hilos terminen antes del break.
+            hilo1.join()
+            hilo2.join()
+        else:
+            # Creamos los hilos para mandar los correos concurrentemente.
+            hilo1 = threading.Thread(target=enviarCorreos, args=(archivo1, remitente, asunto, mensaje))
+            hilo2 = threading.Thread(target=enviarCorreos, args=(archivo2, remitente, asunto, mensaje))
+            hilo3 = threading.Thread(target=enviarCorreos, args=(archivo3, remitente, asunto, mensaje))
+
+            # Inicializamos los hilos.
+            hilo1.start()
+            hilo2.start()
+            hilo3.start()
+
+            # Esperamos a que los hilos terminen antes del break.
+            hilo1.join()
+            hilo2.join()
+            hilo3.join()
         
         break
-    
-    print('Se mandaron todos los emails.')
+
     # Generar el archivo XML con las estadísticas
     generarXML(estadisticas)
 
 os.system('cls')
 
-# Iniciar el servidor
 start_server()
